@@ -1,2 +1,0 @@
-# discipline
-“Build discipline and stay consistent with your daily habits. Track routines, set goals, and monitor progress with ease. Use reminders and streaks to stay motivated, reduce procrastination, and improve focus. Start small, stay consistent, and create a productive lifestyle.”
