@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Discipline — Your Daily OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ───────────────── TOKENS ───────────────── */
+:root{
+  --bg:#0c0c0e;--s1:#141416;--s2:#1c1c1f;--s3:#242428;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --text:#f2f1ea;--muted:#7a7a72;--muted2:#555550;
+  --green:#4ade80;--green-dim:rgba(74,222,128,.12);--green-border:rgba(74,222,128,.3);
+  --yellow:#facc15;--yellow-dim:rgba(250,204,21,.12);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,.12);
+  --orange:#fb923c;--orange-dim:rgba(251,146,60,.12);
+  --red:#f87171;--red-dim:rgba(248,113,113,.12);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,.12);
+  --pink:#f472b6;--pink-dim:rgba(244,114,182,.12);
+  --r:10px;--rl:14px;--rx:20px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+  --font-serif:'Playfair Display',serif;
+  --font:'Outfit',sans-serif;
+}
+[data-theme="light"]{
+  --bg:#f4f3ef;--s1:#ffffff;--s2:#f9f8f5;--s3:#f0efe9;
+  --border:rgba(0,0,0,.07);--border2:rgba(0,0,0,.12);
+  --text:#1a1a18;--muted:#7a7a72;--muted2:#aaa;
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+}
+/* ───────────────── BASE ───────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;transition:background .3s,color .3s}
+button,input,select,textarea{font-family:var(--font)}
+input,select,textarea{background:var(--s2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:14px;padding:10px 12px;outline:none;transition:border .2s,box-shadow .2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,222,128,.1)}
+select option{background:var(--s1)}
+textarea{resize:vertical;min-height:80px}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+a{color:inherit;text-decoration:none}
+/* ───────────────── LAYOUT ───────────────── */
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.brand-logo{font-family:var(--font-serif);font-size:24px;font-weight:700;letter-spacing:-.5px}
+.brand-logo span{color:var(--green)}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.5px;text-transform:uppercase}
+.nav-section{padding:16px 12px 4px;font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border:none;background:none;color:var(--muted);font-size:14px;width:100%;text-align:left;border-radius:var(--r);margin:2px 8px;width:calc(100% - 16px);transition:all .15s;font-weight:400}
+.nav-btn:hover{color:var(--text);background:var(--s3)}
+.nav-btn.active{color:var(--text);background:var(--green-dim);font-weight:500}
+.nav-btn.active .nav-icon{color:var(--green)}
+.nav-icon{font-size:16px;width:22px;text-align:center;transition:color .15s}
+.nav-badge{margin-left:auto;background:var(--green);color:#0a1a0a;font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid var(--border)}
+.theme-toggle{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--s2);border-radius:var(--r);cursor:pointer;border:1px solid var(--border);font-size:13px;color:var(--muted);width:100%;transition:all .15s}
+.theme-toggle:hover{border-color:var(--border2);color:var(--text)}
+.main{padding:28px 32px;overflow-y:auto;min-height:100vh}
+/* ───────────────── PAGES ───────────────── */
+.page{display:none;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* ───────────────── HERO / RANK ───────────────── */
+.rank-card{background:linear-gradient(135deg,var(--s2) 0%,var(--s1) 100%);border:1px solid var(--border);border-radius:var(--rl);padding:24px;margin-bottom:20px;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;position:relative;overflow:hidden}
+.rank-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.08),transparent 70%)}
+.circ-svg-wrap{position:relative;z-index:1}
+.rank-info{z-index:1}
+.rank-title{font-family:var(--font-serif);font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
+.rank-desc{font-size:13px;color:var(--muted);margin-top:4px}
+.rank-bar-wrap{margin-top:12px}
+.rank-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.rank-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),#86efac);transition:width .6s cubic-bezier(.4,0,.2,1)}
+.rank-bar-lbls{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+/* ───────────────── XP BAR ───────────────── */
+.xp-strip{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:14px}
+.xp-label{font-size:12px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.xp-bar-outer{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.xp-bar-inner{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--yellow),var(--orange));transition:width .5s}
+.xp-num{font-size:12px;color:var(--muted);white-space:nowrap}
+/* ───────────────── STATS GRID ───────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.scard{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;cursor:default}
+.scard-val{font-size:28px;font-weight:600;font-family:var(--font-serif);line-height:1}
+.scard-lbl{font-size:12px;color:var(--muted);margin-top:4px}
+.scard.g .scard-val{color:var(--green)}
+.scard.y .scard-val{color:var(--yellow)}
+.scard.b .scard-val{color:var(--blue)}
+.scard.o .scard-val{color:var(--orange)}
+/* ───────────────── GRID LAYOUTS ───────────────── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px}
+/* ───────────────── QUOTE ───────────────── */
+.quote-strip{border-left:3px solid var(--green);padding:12px 16px;background:var(--green-dim);border-radius:0 var(--r) var(--r) 0;font-size:14px;color:var(--muted);font-style:italic;line-height:1.6;margin-bottom:20px}
+/* ───────────────── SECTION TITLES ───────────────── */
+.sec{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:20px 0 12px;display:flex;align-items:center;justify-content:space-between}
+.sec-action{font-size:12px;font-weight:500;color:var(--green);text-transform:none;letter-spacing:0;cursor:pointer;background:none;border:none}
+/* ───────────────── ADD FORM ───────────────── */
+.add-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:18px}
+.add-box-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.form-row:last-child{margin-bottom:0}
+.form-row input,.form-row select{flex:1;min-width:80px}
+.btn{border:none;border-radius:var(--r);cursor:pointer;font-size:14px;font-weight:500;padding:10px 18px;transition:all .15s;font-family:var(--font)}
+.btn-primary{background:var(--green);color:#071a0c;font-weight:600}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-secondary{background:var(--s3);color:var(--text);border:1px solid var(--border2)}
+.btn-secondary:hover{border-color:var(--border2);background:var(--s2)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px}
+/* ───────────────── FILTERS ───────────────── */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.pill{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:none;cursor:pointer;font-size:12px;color:var(--muted);font-family:var(--font);transition:all .15s}
+.pill:hover{border-color:var(--border2);color:var(--text)}
+.pill.active{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+/* ───────────────── TASKS ───────────────── */
+.search-bar{position:relative;margin-bottom:12px}
+.search-bar input{padding-left:36px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
+.titem{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;transition:all .2s}
+.titem:hover{border-color:var(--border2)}
+.titem.done{opacity:.45}
+.titem-top{display:flex;align-items:flex-start;gap:10px;padding:12px 14px}
+.chk{width:17px;height:17px;accent-color:var(--green);cursor:pointer;flex-shrink:0;margin-top:2px}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.dH{background:var(--red)}.dM{background:var(--yellow)}.dL{background:var(--green)}
+.ttitle{font-size:15px;flex:1;line-height:1.4}
+.titem.done .ttitle{text-decoration:line-through;color:var(--muted)}
+.tmeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.catbadge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.cwork{background:var(--blue-dim);color:var(--blue)}
+.cpersonal{background:var(--orange-dim);color:var(--orange)}
+.chealth{background:var(--green-dim);color:var(--green)}
+.cstudy{background:var(--purple-dim);color:var(--purple)}
+.due-badge{font-size:11px;padding:2px 7px;border-radius:20px;background:var(--yellow-dim);color:var(--yellow)}
+.due-badge.overdue{background:var(--red-dim);color:var(--red)}
+.tbtn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;padding:0 3px;line-height:1;transition:color .15s}
+.tbtn:hover{color:var(--red)}
+.tnotes{font-size:12px;color:var(--muted);padding:0 14px 10px 43px;font-style:italic;line-height:1.5}
+/* ───────────────── HABITS ───────────────── */
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.hcard{background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);padding:16px;transition:all .2s;position:relative;overflow:hidden}
+.hcard::after{content:'';position:absolute;inset:0;opacity:0;background:linear-gradient(135deg,var(--green-dim),transparent);transition:opacity .3s;pointer-events:none;border-radius:var(--rl)}
+.hcard.done-today{border-color:var(--green-border)}
+.hcard.done-today::after{opacity:1}
+.hcat-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.hbH{background:var(--green-dim);color:var(--green)}
+.hbM{background:var(--purple-dim);color:var(--purple)}
+.hbW{background:var(--blue-dim);color:var(--blue)}
+.hbL{background:var(--orange-dim);color:var(--orange)}
+.hbO{background:var(--s3);color:var(--muted)}
+.hname{font-size:14px;font-weight:500;margin-bottom:3px;position:relative;z-index:1}
+.hstreak-val{font-size:28px;font-weight:700;font-family:var(--font-serif);color:var(--yellow);line-height:1;position:relative;z-index:1}
+.hstreak-lbl{font-size:11px;color:var(--muted);margin-bottom:8px}
+.cal21{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:10px;position:relative;z-index:1}
+.c21{width:13px;height:13px;border-radius:3px;background:var(--s3)}
+.c21.cdone{background:rgba(74,222,128,.45)}
+.c21.ctoday{background:var(--green)}
+.hbtn{width:100%;padding:8px;font-size:13px;border-radius:8px;cursor:pointer;font-family:var(--font);border:1px solid var(--border);background:none;color:var(--text);transition:all .15s;margin-bottom:4px;position:relative;z-index:1}
+.hbtn:hover{border-color:var(--green);color:var(--green)}
+.hbtn.checked{background:var(--green-dim);border-color:var(--green-border);color:var(--green);font-weight:500}
+.hrem{width:100%;padding:4px;font-size:11px;border:none;background:none;cursor:pointer;color:var(--muted);font-family:var(--font);position:relative;z-index:1}
+.hrem:hover{color:var(--red)}
+/* ───────────────── PROGRESS ───────────────── */
+.pct-hero{background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);padding:24px;margin-bottom:18px;display:flex;align-items:center;gap:20px}
+.pct-big{font-size:56px;font-family:var(--font-serif);font-weight:700;color:var(--green);line-height:1;flex-shrink:0}
+.pct-info{flex:1}
+.pct-bar{height:10px;background:var(--s3);border-radius:5px;overflow:hidden;margin-bottom:8px}
+.pct-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--green),#86efac);transition:width .7s cubic-bezier(.4,0,.2,1)}
+.pct-meta{font-size:13px;color:var(--muted)}
+/* week chart */
+.wchart{display:flex;align-items:flex-end;gap:8px;height:80px;margin-bottom:6px}
+.wc-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.wc-bars{display:flex;gap:2px;align-items:flex-end;height:65px}
+.wc-bar{flex:1;border-radius:3px 3px 0 0;min-height:3px;transition:height .4s}
+.wc-lbl{font-size:10px;color:var(--muted)}
+.wc-val{font-size:10px;color:var(--muted);font-weight:500}
+.lgd{display:flex;gap:14px;margin-bottom:10px}
+.lgd-dot{width:10px;height:10px;border-radius:2px}
+.lgd-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+/* day log */
+.day-entry{border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;background:var(--s1);overflow:hidden}
+.day-head{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--border)}
+.day-dlbl{font-size:13px;font-weight:500;flex:1}
+.score-bar{width:80px;height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;background:var(--green);border-radius:3px}
+.score-num{font-size:12px;color:var(--green);font-weight:500;min-width:50px;text-align:right}
+.day-body{padding:10px 16px}
+.day-task-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.day-task-row:last-child{border-bottom:none}
+.day-task-lbl{font-size:14px;flex:1}
+.hab-chip{padding:3px 10px;border-radius:20px;font-size:11px;background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.day-habs{display:flex;flex-wrap:wrap;gap:5px;padding-top:8px;margin-top:4px;border-top:1px solid var(--border)}
+/* heatmap */
+.heatmap{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px}
+.hm-cell{width:12px;height:12px;border-radius:2px;background:var(--s3)}
+.hm-cell.l1{background:rgba(74,222,128,.2)}
+.hm-cell.l2{background:rgba(74,222,128,.45)}
+.hm-cell.l3{background:rgba(74,222,128,.7)}
+.hm-cell.l4{background:var(--green)}
+/* ───────────────── GOALS ───────────────── */
+.goal-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.goal-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.goal-title{font-size:15px;font-weight:500;flex:1}
+.goal-pct{font-size:13px;font-weight:600;color:var(--green)}
+.goal-bar{height:7px;background:var(--s3);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.goal-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),#86efac);transition:width .5s}
+.goal-meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.goal-complete{border-color:var(--green-border);background:var(--green-dim)}
+/* ───────────────── JOURNAL ───────────────── */
+.journal-entry{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.j-head{padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.j-date{font-size:13px;font-weight:500}
+.j-mood{font-size:18px}
+.j-body{padding:12px 16px;font-size:14px;color:var(--muted);line-height:1.6;white-space:pre-wrap}
+.mood-row{display:flex;gap:8px;margin-bottom:10px}
+.mood-btn{background:none;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:20px;padding:8px 14px;transition:all .15s}
+.mood-btn:hover,.mood-btn.sel{background:var(--s3);border-color:var(--border2);transform:scale(1.1)}
+/* ───────────────── FOCUS TIMER ───────────────── */
+.timer-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);padding:32px;text-align:center;margin-bottom:18px}
+.timer-display{font-family:var(--font-serif);font-size:72px;font-weight:700;color:var(--text);line-height:1;margin-bottom:8px;letter-spacing:-2px}
+.timer-phase{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:24px}
+.timer-ring{margin:0 auto 24px;position:relative;width:180px;height:180px}
+.timer-controls{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.timer-settings{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.timer-set-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);transition:all .15s}
+.timer-set-btn:hover,.timer-set-btn.active{background:var(--s3);color:var(--text);border-color:var(--border2)}
+.sessions-count{font-size:13px;color:var(--muted);margin-top:8px}
+/* ───────────────── ACHIEVEMENTS ───────────────── */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.badge-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);padding:16px;text-align:center;transition:all .2s}
+.badge-card.unlocked{border-color:var(--yellow-dim);background:rgba(250,204,21,.04)}
+.badge-card.locked{opacity:.4}
+.badge-icon{font-size:32px;margin-bottom:8px}
+.badge-name{font-size:13px;font-weight:500;margin-bottom:3px}
+.badge-desc{font-size:11px;color:var(--muted);line-height:1.4}
+/* ───────────────── SETTINGS ───────────────── */
+.settings-group{background:var(--s1);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:16px;overflow:hidden}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-lbl{font-size:14px;font-weight:500}
+.settings-sub{font-size:12px;color:var(--muted);margin-top:2px}
+/* ───────────────── EMPTY STATES ───────────────── */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:8px}
+.empty-text{font-size:14px}
+/* ───────────────── TOAST ───────────────── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--s1);border:1px solid var(--green-border);color:var(--text);padding:12px 20px;border-radius:var(--rx);font-size:14px;z-index:1000;transition:transform .3s cubic-bezier(.4,0,.2,1);white-space:nowrap;box-shadow:var(--shadow)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+/* ───────────────── DASHBOARD HABIT ROW ───────────────── */
+.qh-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;background:var(--s1);transition:all .15s}
+.qh-row:hover{border-color:var(--border2)}
+.qh-name{font-size:14px;font-weight:500}
+.qh-streak{font-size:12px;color:var(--muted);margin-top:1px}
+.qh-btn{padding:5px 14px;font-size:12px;border-radius:20px;cursor:pointer;font-family:var(--font);border:1px solid var(--border);background:none;color:var(--text);transition:all .15s;white-space:nowrap}
+.qh-btn:hover{border-color:var(--green);color:var(--green)}
+.qh-btn.done{background:var(--green-dim);border-color:var(--green-border);color:var(--green);font-weight:500}
+/* ───────────────── REPORT ───────────────── */
+.rep-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.mini-stat{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px;text-align:center}
+.mini-val{font-size:28px;font-weight:600;font-family:var(--font-serif)}
+.mini-lbl{font-size:12px;color:var(--muted);margin-top:3px}
+.top-hab-list{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.th-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
+.th-row:last-child{border-bottom:none}
+.th-name{font-size:14px}
+.th-s{font-size:20px;font-weight:600;font-family:var(--font-serif);color:var(--yellow)}
+.th-s span{font-size:11px;font-weight:400;color:var(--muted)}
+/* ───────────────── WATER TRACKER ───────────────── */
+.water-track{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.water-cup{font-size:22px;cursor:pointer;transition:transform .15s;filter:grayscale(1);opacity:.3}
+.water-cup.filled{filter:none;opacity:1}
+.water-cup:hover{transform:scale(1.2)}
+/* ───────────────── MOBILE NAV ───────────────── */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--border);z-index:100;padding:0;padding-bottom:env(safe-area-inset-bottom)}
+.mob-nav-inner{display:flex}
+.mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--muted);font-size:10px;font-family:var(--font);transition:color .15s;border-top:2px solid transparent}
+.mob-btn.active{color:var(--green);border-top-color:var(--green)}
+.mob-icon{font-size:18px}
+/* ───────────────── RESPONSIVE ───────────────── */
+@media(max-width:768px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .mob-nav{display:block}
+  .main{padding:16px 14px 80px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .rep-2col{grid-template-columns:1fr 1fr}
+  .rank-card{grid-template-columns:auto 1fr;gap:14px}
+  .rank-title{font-size:20px}
+  .pct-big{font-size:42px}
+  .timer-display{font-size:52px}
+}
+@media(max-width:420px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .hgrid{grid-template-columns:1fr 1fr}
+  .badge-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+  <div class="brand">
+    <div class="brand-logo">Disc<span>i</span>pline</div>
+    <div class="brand-sub">Your daily OS</div>
+  </div>
+  <div class="nav-section">Main</div>
+  <button class="nav-btn active" data-page="dash"><span class="nav-icon">◈</span>Dashboard</button>
+  <button class="nav-btn" data-page="tasks"><span class="nav-icon">✓</span>Tasks</button>
+  <button class="nav-btn" data-page="habits"><span class="nav-icon">◎</span>Habits</button>
+  <button class="nav-btn" data-page="progress"><span class="nav-icon">▲</span>Progress</button>
+  <div class="nav-section">Extras</div>
+  <button class="nav-btn" data-page="goals"><span class="nav-icon">◉</span>Goals</button>
+  <button class="nav-btn" data-page="journal"><span class="nav-icon">✎</span>Journal</button>
+  <button class="nav-btn" data-page="focus"><span class="nav-icon">⏱</span>Focus Timer</button>
+  <button class="nav-btn" data-page="achieve"><span class="nav-icon">★</span>Achievements<span class="nav-badge" id="badge-count">0</span></button>
+  <div class="nav-section">System</div>
+  <button class="nav-btn" data-page="report"><span class="nav-icon">≡</span>Report</button>
+  <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
+  <div class="sidebar-footer">
+    <button class="theme-toggle" id="theme-btn">☀ Toggle light mode</button>
+  </div>
+</nav>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="main">
+
+<!-- ▓▓ DASHBOARD ▓▓ -->
+<div class="page active" id="page-dash">
+  <div class="rank-card">
+    <div class="circ-svg-wrap"><svg id="circ-svg" viewBox="0 0 90 90" width="90" height="90"></svg></div>
+    <div class="rank-info">
+      <div class="rank-title" id="rank-title">The Beginner</div>
+      <div class="rank-desc" id="rank-desc">Complete tasks and build habits to rise</div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar"><div class="rank-bar-fill" id="rank-fill" style="width:0%"></div></div>
+        <div class="rank-bar-lbls"><span id="rank-next">Next rank</span><span id="rank-pct">0%</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="xp-strip">
+    <div class="xp-label">XP</div>
+    <div class="xp-bar-outer"><div class="xp-bar-inner" id="xp-bar" style="width:0%"></div></div>
+    <div class="xp-num" id="xp-num">0 / 100 XP</div>
+  </div>
+  <div class="stats-grid">
+    <div class="scard g"><div class="scard-val" id="ds-today">0</div><div class="scard-lbl">Done today</div></div>
+    <div class="scard y"><div class="scard-val" id="ds-streak">0</div><div class="scard-lbl">Best streak</div></div>
+    <div class="scard b"><div class="scard-val" id="ds-total">0</div><div class="scard-lbl">Total done</div></div>
+    <div class="scard o"><div class="scard-val" id="ds-pct">0%</div><div class="scard-lbl">Completion</div></div>
+  </div>
+  <div class="quote-strip" id="quote-strip"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">💧 Water today</div>
+      <div class="water-track" id="water-track"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px" id="water-lbl">0 / 8 glasses</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Today's date</div>
+      <div id="today-date" style="font-size:18px;font-family:var(--font-serif);font-weight:600;margin-bottom:4px"></div>
+      <div id="day-goal-pct" style="font-size:13px;color:var(--muted)"></div>
+    </div>
+  </div>
+  <div class="sec">Today's habits <button class="sec-action" onclick="gotoPage('habits')">Add habit →</button></div>
+  <div id="dash-habits"></div>
+  <div class="sec">Pending tasks <button class="sec-action" onclick="gotoPage('tasks')">Add task →</button></div>
+  <div id="dash-tasks"></div>
+</div>
+
+<!-- ▓▓ TASKS ▓▓ -->
+<div class="page" id="page-tasks">
+  <div class="add-box">
+    <div class="add-box-title">Add new task</div>
+    <div class="form-row">
+      <input id="t-input" type="text" placeholder="What needs to be done?" style="flex:3"/>
+      <select id="t-cat" style="flex:1"><option value="work">Work</option><option value="personal">Personal</option><option value="health">Health</option><option value="study">Study</option></select>
+    </div>
+    <div class="form-row">
+      <select id="t-pri" style="flex:1"><option value="high">🔴 High</option><option value="med">🟡 Medium</option><option value="low">🟢 Low</option></select>
+      <input id="t-due" type="date" style="flex:1" title="Due date (optional)"/>
+    </div>
+    <div class="form-row"><textarea id="t-notes" placeholder="Notes (optional)..." rows="2" style="min-height:60px"></textarea></div>
+    <div class="form-row"><button class="btn btn-primary" id="btn-add-task" style="width:100%">+ Add task</button></div>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <input id="task-search" type="text" placeholder="Search tasks..."/>
+  </div>
+  <div class="filters" id="task-filters">
+    <button class="pill active" data-f="all">All</button>
+    <button class="pill" data-f="pending">Pending</button>
+    <button class="pill" data-f="done">Done</button>
+    <button class="pill" data-f="overdue">Overdue</button>
+    <button class="pill" data-f="work">Work</button>
+    <button class="pill" data-f="personal">Personal</button>
+    <button class="pill" data-f="health">Health</button>
+    <button class="pill" data-f="study">Study</button>
+  </div>
+  <div id="task-list"></div>
+</div>
+
+<!-- ▓▓ HABITS ▓▓ -->
+<div class="page" id="page-habits">
+  <div class="add-box">
+    <div class="add-box-title">Add new habit</div>
+    <div class="form-row">
+      <input id="h-input" type="text" placeholder="e.g. Meditate, Exercise, Read 20 pages..." style="flex:3"/>
+      <select id="h-cat" style="flex:1"><option value="health">Health</option><option value="mind">Mind</option><option value="work">Work</option><option value="life">Life</option><option value="other">Other</option></select>
+    </div>
+    <div class="form-row"><button class="btn btn-primary" id="btn-add-habit" style="width:100%">+ Add habit</button></div>
+  </div>
+  <div class="hgrid" id="habit-list"></div>
+</div>
+
+<!-- ▓▓ PROGRESS ▓▓ -->
+<div class="page" id="page-progress">
+  <div class="pct-hero">
+    <div class="pct-big" id="prog-pct">0%</div>
+    <div class="pct-info">
+      <div class="pct-bar"><div class="pct-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="pct-meta" id="prog-meta">Add tasks to track completion</div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-title">Last 7 days</div>
+    <div class="lgd">
+      <div class="lgd-item"><div class="lgd-dot" style="background:var(--green)"></div>Tasks done</div>
+      <div class="lgd-item"><div class="lgd-dot" style="background:var(--blue)"></div>Habit rate</div>
+    </div>
+    <div class="wchart" id="prog-chart"></div>
+  </div>
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-title">Activity heatmap (last 90 days)</div>
+    <div class="heatmap" id="heatmap"></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">Each cell = 1 day. Darker = more done.</div>
+  </div>
+  <div class="sec">Day-by-day log</div>
+  <div id="day-log"></div>
+</div>
+
+<!-- ▓▓ GOALS ▓▓ -->
+<div class="page" id="page-goals">
+  <div class="add-box">
+    <div class="add-box-title">Set a new goal</div>
+    <div class="form-row">
+      <input id="g-input" type="text" placeholder="Goal title (e.g. Complete 10 work tasks this week)" style="flex:3"/>
+    </div>
+    <div class="form-row">
+      <select id="g-type"><option value="tasks">Tasks completed</option><option value="habits">Habit check-ins</option><option value="streak">Streak days</option></select>
+      <input id="g-target" type="number" placeholder="Target (e.g. 10)" min="1" style="flex:1"/>
+      <select id="g-period"><option value="week">This week</option><option value="month">This month</option><option value="total">All time</option></select>
+    </div>
+    <div class="form-row"><button class="btn btn-primary" id="btn-add-goal" style="width:100%">+ Add goal</button></div>
+  </div>
+  <div id="goals-list"></div>
+</div>
+
+<!-- ▓▓ JOURNAL ▓▓ -->
+<div class="page" id="page-journal">
+  <div class="add-box">
+    <div class="add-box-title">Today's reflection</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">How are you feeling?</div>
+    <div class="mood-row" id="mood-row">
+      <button class="mood-btn" data-mood="😄">😄</button>
+      <button class="mood-btn" data-mood="🙂">🙂</button>
+      <button class="mood-btn" data-mood="😐">😐</button>
+      <button class="mood-btn" data-mood="😔">😔</button>
+      <button class="mood-btn" data-mood="😤">😤</button>
+      <button class="mood-btn" data-mood="😴">😴</button>
+    </div>
+    <div class="form-row"><textarea id="j-text" placeholder="Write your thoughts, wins, what you learned, what to improve tomorrow..." style="min-height:120px"></textarea></div>
+    <div class="form-row"><button class="btn btn-primary" id="btn-add-journal" style="width:100%">Save entry</button></div>
+  </div>
+  <div id="journal-list"></div>
+</div>
+
+<!-- ▓▓ FOCUS TIMER ▓▓ -->
+<div class="page" id="page-focus">
+  <div class="timer-card">
+    <div id="timer-phase-lbl" class="timer-phase">Focus session</div>
+    <div style="position:relative;width:180px;height:180px;margin:0 auto 24px">
+      <svg id="timer-svg" viewBox="0 0 180 180" width="180" height="180">
+        <circle cx="90" cy="90" r="80" fill="none" stroke-width="8" stroke="var(--s3)"/>
+        <circle id="timer-ring" cx="90" cy="90" r="80" fill="none" stroke-width="8" stroke="var(--green)" stroke-dasharray="502.65" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 90 90)" style="transition:stroke-dashoffset .5s"/>
+      </svg>
+      <div id="timer-display" class="timer-display" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px">25:00</div>
+    </div>
+    <div class="timer-controls">
+      <button class="btn btn-primary" id="timer-start" style="min-width:100px">▶ Start</button>
+      <button class="btn btn-secondary" id="timer-reset">↺ Reset</button>
+      <button class="btn btn-secondary" id="timer-skip">⏭ Skip</button>
+    </div>
+    <div class="timer-settings">
+      <button class="timer-set-btn active" data-dur="25">25 min</button>
+      <button class="timer-set-btn" data-dur="50">50 min</button>
+      <button class="timer-set-btn" data-dur="90">90 min</button>
+    </div>
+    <div class="sessions-count" id="sessions-count">Sessions today: 0 · Total focus: 0 min</div>
+  </div>
+  <div class="card">
+    <div class="card-title">What are you working on?</div>
+    <div class="form-row" style="margin-top:8px">
+      <input id="focus-task" type="text" placeholder="Task or project name..." />
+      <button class="btn btn-secondary btn-sm" id="btn-log-session">Log session</button>
+    </div>
+    <div class="sec" style="margin-top:16px">Recent sessions</div>
+    <div id="focus-log"></div>
+  </div>
+</div>
+
+<!-- ▓▓ ACHIEVEMENTS ▓▓ -->
+<div class="page" id="page-achieve">
+  <div class="badge-grid" id="badge-grid"></div>
+</div>
+
+<!-- ▓▓ REPORT ▓▓ -->
+<div class="page" id="page-report">
+  <div class="rep-2col" id="rep-stats"></div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Tasks — last 7 days</div>
+    <div class="wchart" id="rep-task-chart"></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Habit completion rate — last 7 days</div>
+    <div class="wchart" id="rep-hab-chart"></div>
+  </div>
+  <div class="sec">Top habits by streak</div>
+  <div class="top-hab-list" id="top-habits"></div>
+</div>
+
+<!-- ▓▓ SETTINGS ▓▓ -->
+<div class="page" id="page-settings">
+  <div class="settings-group">
+    <div class="settings-row">
+      <div><div class="settings-lbl">Theme</div><div class="settings-sub">Switch between dark and light mode</div></div>
+      <button class="btn btn-secondary btn-sm" id="settings-theme-btn">Toggle</button>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Export data</div><div class="settings-sub">Download your data as JSON backup</div></div>
+      <button class="btn btn-secondary btn-sm" id="btn-export">Export</button>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Import data</div><div class="settings-sub">Restore from a JSON backup file</div></div>
+      <div><input type="file" id="import-file" accept=".json" style="display:none"/><button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-file').click()">Import</button></div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Clear all data</div><div class="settings-sub">Permanently delete everything</div></div>
+      <button class="btn btn-danger btn-sm" id="btn-clear">Clear</button>
+    </div>
+  </div>
+  <div class="settings-group">
+    <div class="settings-row">
+      <div><div class="settings-lbl">App version</div><div class="settings-sub">Discipline v2.0 — Your Daily OS</div></div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-lbl">Data stored</div><div class="settings-sub" id="data-size">Calculating...</div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ═══ MOBILE NAV ═══ -->
+<nav class="mob-nav">
+  <div class="mob-nav-inner">
+    <button class="mob-btn active" data-page="dash"><span class="mob-icon">◈</span>Home</button>
+    <button class="mob-btn" data-page="tasks"><span class="mob-icon">✓</span>Tasks</button>
+    <button class="mob-btn" data-page="habits"><span class="mob-icon">◎</span>Habits</button>
+    <button class="mob-btn" data-page="progress"><span class="mob-icon">▲</span>Progress</button>
+    <button class="mob-btn" data-page="focus"><span class="mob-icon">⏱</span>Focus</button>
+    <button class="mob-btn" data-page="goals"><span class="mob-icon">◉</span>Goals</button>
+    <button class="mob-btn" data-page="journal"><span class="mob-icon">✎</span>Journal</button>
+    <button class="mob-btn" data-page="settings"><span class="mob-icon">⚙</span>More</button>
+  </div>
+</nav>
+
+<!-- ═══ TOAST ═══ -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let S = {
+  tasks: [], habits: [], goals: [], journal: [],
+  focus: { sessions: [], todayCount: 0, todayMin: 0, lastDate: '' },
+  water: { today: 0, lastDate: '' },
+  xp: 0
+};
+const TODAY = new Date().toDateString();
+const QUOTES = [
+  "Discipline is the bridge between goals and accomplishment.",
+  "You don't rise to your goals — you fall to your systems.",
+  "Small daily improvements lead to staggering long-term results.",
+  "Every action is a vote for the person you wish to become.",
+  "Consistency is more important than perfection.",
+  "Hard work beats talent when talent fails to work hard.",
+  "The secret of getting ahead is getting started.",
+  "Success is the sum of small efforts, repeated daily.",
+  "Don't count the days — make the days count.",
+  "It always seems impossible until it's done.",
+  "Focus on the process, and the results will follow.",
+  "The pain of discipline is less than the pain of regret.",
+  "Win the morning, win the day.",
+  "Great things are done by a series of small things brought together.",
+  "Your future self is watching you right now."
+];
+const TITLES = [
+  { t:"The Beginner", d:"Every master was once here", req:()=>true, next:"Getting Started", nr:"5 tasks", prog:s=>Math.min(100,Math.round(s.done/5*100)) },
+  { t:"Getting Started", d:"5 tasks completed", req:s=>s.done>=5, next:"On The Rise", nr:"3-day streak", prog:s=>Math.min(100,Math.round(s.streak/3*100)) },
+  { t:"On The Rise", d:"3-day habit streak", req:s=>s.streak>=3, next:"The Consistent", nr:"25 tasks", prog:s=>Math.min(100,Math.round(s.done/25*100)) },
+  { t:"The Consistent", d:"25 tasks done", req:s=>s.done>=25, next:"Week Warrior", nr:"7-day streak", prog:s=>Math.min(100,Math.round(s.streak/7*100)) },
+  { t:"The Disciplined", d:"50 tasks completed", req:s=>s.done>=50, next:"Week Warrior", nr:"7-day streak", prog:s=>Math.min(100,Math.round(s.streak/7*100)) },
+  { t:"Week Warrior", d:"7 days consistent", req:s=>s.streak>=7, next:"Fortnight Fighter", nr:"14-day streak", prog:s=>Math.min(100,Math.round(s.streak/14*100)) },
+  { t:"Fortnight Fighter", d:"14 days of discipline", req:s=>s.streak>=14, next:"Iron Will", nr:"30-day streak", prog:s=>Math.min(100,Math.round(s.streak/30*100)) },
+  { t:"Iron Will", d:"30-day streak — unstoppable", req:s=>s.streak>=30, next:"The Master", nr:"100 tasks", prog:s=>Math.min(100,Math.round(s.done/100*100)) },
+  { t:"The Master", d:"100 tasks conquered — you are elite", req:s=>s.done>=100, next:null, nr:null, prog:()=>100 }
+];
+const BADGES = [
+  { id:'first_task', icon:'🎯', name:'First Step', desc:'Complete your first task', check:s=>s.done>=1 },
+  { id:'five_tasks', icon:'⚡', name:'Getting Going', desc:'Complete 5 tasks', check:s=>s.done>=5 },
+  { id:'twenty_tasks', icon:'🔥', name:'On Fire', desc:'Complete 20 tasks', check:s=>s.done>=20 },
+  { id:'fifty_tasks', icon:'💎', name:'Diamond Work', desc:'Complete 50 tasks', check:s=>s.done>=50 },
+  { id:'hundred_tasks', icon:'👑', name:'The Century', desc:'Complete 100 tasks', check:s=>s.done>=100 },
+  { id:'first_habit', icon:'🌱', name:'New Habit', desc:'Add your first habit', check:s=>s.habits>=1 },
+  { id:'streak3', icon:'🔗', name:'3-Day Chain', desc:'3 day habit streak', check:s=>s.streak>=3 },
+  { id:'streak7', icon:'🗓', name:'Week Strong', desc:'7 day habit streak', check:s=>s.streak>=7 },
+  { id:'streak30', icon:'🏆', name:'Month Master', desc:'30 day habit streak', check:s=>s.streak>=30 },
+  { id:'first_goal', icon:'🎪', name:'Goal Setter', desc:'Set your first goal', check:s=>s.goals>=1 },
+  { id:'focus_first', icon:'⏱', name:'In The Zone', desc:'Complete a focus session', check:s=>s.sessions>=1 },
+  { id:'focus_ten', icon:'🧠', name:'Deep Worker', desc:'Complete 10 focus sessions', check:s=>s.sessions>=10 },
+  { id:'water_day', icon:'💧', name:'Hydrated', desc:'Drink 8 glasses in a day', check:s=>s.water>=8 },
+  { id:'journal_first', icon:'📝', name:'First Reflection', desc:'Write your first journal entry', check:s=>s.journalCount>=1 },
+  { id:'journal_seven', icon:'📖', name:'Daily Writer', desc:'Write 7 journal entries', check:s=>s.journalCount>=7 }
+];
+const catMap = { work:'cwork', personal:'cpersonal', health:'chealth', study:'cstudy' };
+const priMap = { high:'dH', med:'dM', low:'dL' };
+const hcatMap = { health:'hbH', mind:'hbM', work:'hbW', life:'hbL', other:'hbO' };
+
+// ══════════════════════════════════════════════
+// PERSIST
+// ══════════════════════════════════════════════
+function save() { localStorage.setItem('disc2025v2', JSON.stringify(S)); updateDataSize(); }
+function load() {
+  try { const d = localStorage.getItem('disc2025v2'); if (d) S = JSON.parse(d); } catch(e) {}
+  // migrate water daily reset
+  if (!S.water) S.water = { today: 0, lastDate: '' };
+  if (S.water.lastDate !== TODAY) { S.water.today = 0; S.water.lastDate = TODAY; }
+  if (!S.focus) S.focus = { sessions: [], todayCount: 0, todayMin: 0, lastDate: '' };
+  if (S.focus.lastDate !== TODAY) { S.focus.todayCount = 0; S.focus.todayMin = 0; S.focus.lastDate = TODAY; }
+  if (!S.xp) S.xp = 0;
+  if (!S.goals) S.goals = [];
+  if (!S.journal) S.journal = [];
+  render();
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function nAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d.toDateString(); }
+function last7() { return Array.from({length:7},(_,i)=>nAgo(6-i)); }
+function last90() { return Array.from({length:90},(_,i)=>nAgo(89-i)); }
+function dlbl(ds) { return ['Su','Mo','Tu','We','Th','Fr','Sa'][new Date(ds).getDay()]; }
+function fmtDate(ds) {
+  const d = new Date(ds), diff = Math.round((new Date(TODAY)-d)/86400000);
+  if (diff===0) return 'Today';
+  if (diff===1) return 'Yesterday';
+  return d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+}
+function isOverdue(t) { return !t.done && t.due && new Date(t.due) < new Date(TODAY); }
+
+function streak(h) {
+  if (!h.cd || !h.cd.length) return 0;
+  const s = [...h.cd].map(d=>new Date(d).getTime()).sort((a,b)=>b-a);
+  const tm = new Date(TODAY).getTime(), DAY = 86400000;
+  if (s[0]!==tm && s[0]!==tm-DAY) return 0;
+  let c = 1;
+  for (let i=1;i<s.length;i++) { if(s[i-1]-s[i]===DAY) c++; else break; }
+  return c;
+}
+function maxStreak() { return S.habits.length ? Math.max(0,...S.habits.map(h=>streak(h))) : 0; }
+function totalDone() { return S.tasks.filter(t=>t.done).length; }
+function doneToday() { return S.tasks.filter(t=>t.done&&t.dd===TODAY).length; }
+function overallPct() { return S.tasks.length===0 ? 0 : Math.round(totalDone()/S.tasks.length*100); }
+
+function getTitle() {
+  const st = { done: totalDone(), streak: maxStreak() };
+  let best = TITLES[0];
+  for (const ti of TITLES) { if (ti.req(st)) best = ti; }
+  return { ...best, progress: best.prog(st) };
+}
+
+function addXP(n) { S.xp = (S.xp||0)+n; save(); }
+function getXPLevel() { const lvl = Math.floor(S.xp/100); return { lvl, pct: (S.xp%100), next: (lvl+1)*100 }; }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+function drawCircle(pct) {
+  const r=34, cx=45, cy=45, circ=2*Math.PI*r, fill=circ*(pct/100);
+  const col = pct>=80?'#4ade80':pct>=50?'#facc15':'#60a5fa';
+  document.getElementById('circ-svg').innerHTML=`
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke-width="6" stroke="rgba(255,255,255,.06)"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke-width="6" stroke="${col}" stroke-dasharray="${fill} ${circ}" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="14" font-weight="700" fill="${col}" font-family="Playfair Display,serif">${pct}%</text>
+    <text x="${cx}" y="${cy+10}" text-anchor="middle" font-size="8" fill="${col}" opacity=".6">done</text>`;
+}
+
+// ══════════════════════════════════════════════
+// TASK HTML
+// ══════════════════════════════════════════════
+function taskHTML(t) {
+  const ov = isOverdue(t);
+  const dueStr = t.due ? `<span class="due-badge${ov?' overdue':''}">${ov?'Overdue: ':'Due: '}${new Date(t.due).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>` : '';
+  return `<div class="titem${t.done?' done':''}" id="ti-${t.id}">
+    <div class="titem-top">
+      <div class="pdot ${priMap[t.pri]||'dL'}"></div>
+      <input type="checkbox" class="chk" ${t.done?'checked':''} onchange="toggleTask('${t.id}')"/>
+      <div class="ttitle">${t.title}</div>
+      <div class="tmeta">${dueStr}<span class="catbadge ${catMap[t.cat]||'cwork'}">${t.cat||'work'}</span></div>
+      <button class="tbtn" onclick="delTask('${t.id}')">×</button>
+    </div>
+    ${t.notes?`<div class="tnotes">${t.notes}</div>`:''}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+// HABIT HTML
+// ══════════════════════════════════════════════
+function habCardHTML(h) {
+  const dt = h.cd && h.cd.includes(TODAY);
+  const s = streak(h);
+  const cal = last90().slice(-21).map(d=>{
+    const done = h.cd && h.cd.includes(d);
+    const it = d===TODAY;
+    return `<div class="c21${done?(it?' ctoday':' cdone'):''}"></div>`;
+  }).join('');
+  const cat = h.cat||'other';
+  return `<div class="hcard${dt?' done-today':''}">
+    <span class="hcat-badge ${hcatMap[cat]}">${cat}</span>
+    <div class="hname">${h.name}</div>
+    <div class="hstreak-val">${s}</div>
+    <div class="hstreak-lbl">day streak</div>
+    <div class="cal21">${cal}</div>
+    <button class="hbtn${dt?' checked':''}" onclick="toggleHabit('${h.id}')">${dt?'✓ Done today':'Check in'}</button>
+    <button class="hrem" onclick="delHabit('${h.id}')">Remove</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+// WATER TRACKER
+// ══════════════════════════════════════════════
+function renderWater() {
+  const cups = document.getElementById('water-track');
+  const w = S.water.today||0;
+  cups.innerHTML = Array.from({length:8},(_,i)=>`<span class="water-cup${i<w?' filled':''}" onclick="setWater(${i+1})">💧</span>`).join('');
+  document.getElementById('water-lbl').textContent = `${w} / 8 glasses`;
+}
+window.setWater = n => {
+  S.water.today = S.water.today===n ? n-1 : n;
+  S.water.lastDate = TODAY;
+  save(); renderWater();
+  if (S.water.today>=8) toast('💧 Hydration goal reached! +10 XP'); 
+};
+
+// ══════════════════════════════════════════════
+// GOALS
+// ══════════════════════════════════════════════
+function goalProgress(g) {
+  const now = new Date(), week = last7(), month = Array.from({length:30},(_,i)=>nAgo(29-i));
+  const days = g.period==='week'?week : g.period==='month'?month : null;
+  let val = 0;
+  if (g.type==='tasks') {
+    val = days ? S.tasks.filter(t=>t.done&&t.dd&&days.includes(t.dd)).length : totalDone();
+  } else if (g.type==='habits') {
+    val = days ? S.habits.reduce((a,h)=>a+(h.cd||[]).filter(d=>days.includes(d)).length,0) : S.habits.reduce((a,h)=>a+(h.cd||[]).length,0);
+  } else if (g.type==='streak') {
+    val = maxStreak();
+  }
+  return { val, pct: Math.min(100, Math.round(val/g.target*100)), done: val>=g.target };
+}
+
+function renderGoals() {
+  const el = document.getElementById('goals-list');
+  if (!S.goals.length) { el.innerHTML='<div class="empty"><div class="empty-icon">◉</div><div class="empty-text">No goals yet. Add one above!</div></div>'; return; }
+  el.innerHTML = S.goals.map(g=>{
+    const {val, pct, done} = goalProgress(g);
+    return `<div class="goal-card${done?' goal-complete':''}">
+      <div class="goal-top">
+        <div class="goal-title">${done?'✓ ':''} ${g.title}</div>
+        <div class="goal-pct">${pct}%</div>
+        <button class="tbtn" onclick="delGoal('${g.id}')">×</button>
+      </div>
+      <div class="goal-bar"><div class="goal-fill" style="width:${pct}%"></div></div>
+      <div class="goal-meta">
+        <span>${val} / ${g.target} ${g.type} · ${g.period}</span>
+        <span>${done?'🎉 Achieved!':'Keep going'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// JOURNAL
+// ══════════════════════════════════════════════
+let selMood = '';
+function renderJournal() {
+  const el = document.getElementById('journal-list');
+  if (!S.journal.length) { el.innerHTML='<div class="empty"><div class="empty-icon">✎</div><div class="empty-text">No entries yet. Write your first reflection!</div></div>'; return; }
+  el.innerHTML = [...S.journal].reverse().map(j=>`
+    <div class="journal-entry">
+      <div class="j-head">
+        <div class="j-date">${fmtDate(j.date)} <span style="color:var(--muted);font-size:11px">${j.time}</span></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="j-mood">${j.mood||''}</span>
+          <button class="tbtn" onclick="delJournal('${j.id}')">×</button>
+        </div>
+      </div>
+      <div class="j-body">${j.text}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// FOCUS TIMER
+// ══════════════════════════════════════════════
+let timerState = { running: false, secs: 25*60, total: 25*60, phase: 'focus', breakDur: 5 };
+let timerInterval = null;
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerState.secs/60), s = timerState.secs%60;
+  document.getElementById('timer-display').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const circ = 2*Math.PI*80, pct = timerState.secs/timerState.total;
+  document.getElementById('timer-ring').setAttribute('stroke-dashoffset', circ*(1-pct));
+  document.getElementById('timer-ring').style.stroke = timerState.phase==='focus' ? 'var(--green)' : 'var(--blue)';
+  document.getElementById('timer-phase-lbl').textContent = timerState.phase==='focus' ? 'Focus session' : 'Break time ☕';
+  document.getElementById('sessions-count').textContent = `Sessions today: ${S.focus.todayCount||0} · Total focus: ${S.focus.todayMin||0} min`;
+}
+
+function startTimer() {
+  if (timerState.running) {
+    clearInterval(timerInterval);
+    timerState.running = false;
+    document.getElementById('timer-start').textContent = '▶ Start';
+    return;
+  }
+  timerState.running = true;
+  document.getElementById('timer-start').textContent = '⏸ Pause';
+  timerInterval = setInterval(()=>{
+    timerState.secs--;
+    updateTimerDisplay();
+    if (timerState.secs<=0) {
+      clearInterval(timerInterval);
+      timerState.running = false;
+      document.getElementById('timer-start').textContent = '▶ Start';
+      if (timerState.phase==='focus') {
+        const dur = Math.round(timerState.total/60);
+        S.focus.todayCount = (S.focus.todayCount||0)+1;
+        S.focus.todayMin = (S.focus.todayMin||0)+dur;
+        S.focus.lastDate = TODAY;
+        addXP(20);
+        toast(`🎉 Session done! +20 XP · Break time!`);
+        timerState.phase='break'; timerState.secs=timerState.breakDur*60; timerState.total=timerState.breakDur*60;
+      } else {
+        toast('☕ Break over! Ready to focus?');
+        timerState.phase='focus'; const dur=document.querySelector('.timer-set-btn.active')?.dataset.dur||25;
+        timerState.secs=dur*60; timerState.total=dur*60;
+      }
+      updateTimerDisplay(); save();
+    }
+  },1000);
+}
+
+function renderFocusLog() {
+  const el = document.getElementById('focus-log');
+  const sessions = (S.focus.sessions||[]).slice(-10).reverse();
+  el.innerHTML = sessions.length ? sessions.map(s=>`<div class="day-task-row"><span class="catbadge" style="background:var(--blue-dim);color:var(--blue)">${s.dur}min</span><div class="day-task-lbl">${s.task||'Focus session'}</div><div style="font-size:11px;color:var(--muted)">${s.time}</div></div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:8px 0">No sessions logged yet</div>';
+}
+
+// ══════════════════════════════════════════════
+// ACHIEVEMENTS
+// ══════════════════════════════════════════════
+function getBadgeStats() {
+  return {
+    done: totalDone(), streak: maxStreak(), habits: S.habits.length,
+    goals: S.goals.length, sessions: (S.focus.sessions||[]).length,
+    water: S.water.today||0, journalCount: S.journal.length
+  };
+}
+
+function renderAchievements() {
+  const stats = getBadgeStats();
+  let unlocked = 0;
+  const html = BADGES.map(b=>{
+    const ok = b.check(stats);
+    if (ok) unlocked++;
+    return `<div class="badge-card ${ok?'unlocked':'locked'}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      ${ok?'<div style="font-size:11px;color:var(--yellow);margin-top:6px;font-weight:600">✓ Unlocked</div>':''}
+    </div>`;
+  }).join('');
+  document.getElementById('badge-grid').innerHTML = html;
+  document.getElementById('badge-count').textContent = unlocked;
+}
+
+// ══════════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════════
+function renderProgress() {
+  const pct = overallPct();
+  document.getElementById('prog-pct').textContent = pct+'%';
+  document.getElementById('prog-fill').style.width = pct+'%';
+  const done = totalDone(), total = S.tasks.length, pend = total-done;
+  document.getElementById('prog-meta').textContent = `${done} done · ${pend} pending · ${total} total tasks`;
+  // week chart
+  const days = last7();
+  const tpd = days.map(d=>S.tasks.filter(t=>t.done&&t.dd===d).length);
+  const hpd = days.map(d=>S.habits.length?Math.round(S.habits.filter(h=>h.cd&&h.cd.includes(d)).length/S.habits.length*100):0);
+  const mx = Math.max(1,...tpd);
+  document.getElementById('prog-chart').innerHTML = days.map((d,i)=>{
+    const th = Math.max(3,Math.round(tpd[i]/mx*65));
+    const hh = Math.max(3,Math.round(hpd[i]/100*65));
+    return `<div class="wc-col"><div class="wc-bars"><div class="wc-bar" style="height:${th}px;background:var(--green)"></div><div class="wc-bar" style="height:${hh}px;background:var(--blue)"></div></div><div class="wc-val">${tpd[i]}</div><div class="wc-lbl">${dlbl(d)}</div></div>`;
+  }).join('');
+  // heatmap
+  const days90 = last90();
+  const allDates = new Set([...S.tasks.filter(t=>t.done&&t.dd).map(t=>t.dd),...S.habits.flatMap(h=>h.cd||[])]);
+  document.getElementById('heatmap').innerHTML = days90.map(d=>{
+    const tc = S.tasks.filter(t=>t.done&&t.dd===d).length;
+    const hc = S.habits.filter(h=>h.cd&&h.cd.includes(d)).length;
+    const score = tc+hc;
+    const lvl = score===0?'':score<=2?'l1':score<=5?'l2':score<=9?'l3':'l4';
+    return `<div class="hm-cell ${lvl}" title="${fmtDate(d)}: ${score} items"></div>`;
+  }).join('');
+  // day log
+  const logDates = [...new Set([...S.tasks.filter(t=>t.done&&t.dd).map(t=>t.dd),...S.habits.flatMap(h=>h.cd||[])])].sort((a,b)=>new Date(b)-new Date(a));
+  const maxScore = Math.max(1,...logDates.map(d=>S.tasks.filter(t=>t.done&&t.dd===d).length+S.habits.filter(h=>h.cd&&h.cd.includes(d)).length));
+  document.getElementById('day-log').innerHTML = logDates.length ? logDates.map(d=>{
+    const td = S.tasks.filter(t=>t.done&&t.dd===d);
+    const hd = S.habits.filter(h=>h.cd&&h.cd.includes(d));
+    const score = td.length+hd.length; if (!score) return '';
+    const dp = Math.round(score/maxScore*100);
+    const taskRows = td.map(t=>`<div class="day-task-row"><span class="catbadge ${catMap[t.cat]||'cwork'}">${t.cat}</span><div class="day-task-lbl">${t.title}</div></div>`).join('');
+    const habRow = hd.length ? `<div class="day-habs">${hd.map(h=>`<span class="hab-chip">${h.name}</span>`).join('')}</div>` : '';
+    return `<div class="day-entry"><div class="day-head"><div class="day-dlbl">${fmtDate(d)}</div><div class="score-bar"><div class="score-fill" style="width:${dp}%"></div></div><div class="score-num">${score} items</div></div><div class="day-body">${taskRows}${habRow}</div></div>`;
+  }).join('') : '<div class="empty"><div class="empty-icon">▲</div><div class="empty-text">Complete tasks and habits to see your progress log</div></div>';
+}
+
+// ══════════════════════════════════════════════
+// REPORT
+// ══════════════════════════════════════════════
+function renderReport() {
+  const days = last7();
+  const tpd = days.map(d=>S.tasks.filter(t=>t.done&&t.dd===d).length);
+  const hpd = days.map(d=>S.habits.length?Math.round(S.habits.filter(h=>h.cd&&h.cd.includes(d)).length/S.habits.length*100):0);
+  const wt = tpd.reduce((a,b)=>a+b,0);
+  const ah = Math.round(hpd.reduce((a,b)=>a+b,0)/7);
+  document.getElementById('rep-stats').innerHTML=`
+    <div class="mini-stat"><div class="mini-val" style="color:var(--green)">${wt}</div><div class="mini-lbl">Tasks this week</div></div>
+    <div class="mini-stat"><div class="mini-val" style="color:var(--blue)">${ah}%</div><div class="mini-lbl">Avg habit rate</div></div>
+    <div class="mini-stat"><div class="mini-val" style="color:var(--yellow)">${maxStreak()}</div><div class="mini-lbl">Best streak</div></div>
+    <div class="mini-stat"><div class="mini-val" style="color:var(--orange)">${overallPct()}%</div><div class="mini-lbl">Overall completion</div></div>`;
+  document.getElementById('rep-2col').style.gridTemplateColumns='1fr 1fr';
+  document.getElementById('rep-stats').style.gridTemplateColumns='repeat(4,1fr)';
+  const mxt = Math.max(1,...tpd);
+  document.getElementById('rep-task-chart').innerHTML=days.map((d,i)=>{const h=Math.max(3,Math.round(tpd[i]/mxt*65));return`<div class="wc-col"><div class="wc-bars"><div class="wc-bar" style="height:${h}px;background:var(--green);width:100%"></div></div><div class="wc-val">${tpd[i]}</div><div class="wc-lbl">${dlbl(d)}</div></div>`;}).join('');
+  document.getElementById('rep-hab-chart').innerHTML=days.map((d,i)=>{const h=Math.max(3,Math.round(hpd[i]/100*65));return`<div class="wc-col"><div class="wc-bars"><div class="wc-bar" style="height:${h}px;background:var(--blue);width:100%"></div></div><div class="wc-val">${hpd[i]}%</div><div class="wc-lbl">${dlbl(d)}</div></div>`;}).join('');
+  const top=[...S.habits].sort((a,b)=>streak(b)-streak(a)).slice(0,6);
+  document.getElementById('top-habits').innerHTML=top.length?top.map(h=>{const s=streak(h);const cat=h.cat||'other';return`<div class="th-row"><div><div class="th-name">${h.name}</div><span class="hcat-badge ${hcatMap[cat]}" style="font-size:10px">${cat}</span></div><div class="th-s">${s}<span> days</span></div></div>`;}).join(''):'<div class="empty">No habits yet</div>';
+}
+
+// ══════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════
+function updateDataSize() {
+  const size = new Blob([localStorage.getItem('disc2025v2')||'']).size;
+  const el = document.getElementById('data-size');
+  if (el) el.textContent = `${(size/1024).toFixed(1)} KB used in local storage`;
+}
+
+// ══════════════════════════════════════════════
+// MAIN RENDER
+// ══════════════════════════════════════════════
+function render() {
+  const ti = getTitle(), pct = overallPct();
+  drawCircle(pct);
+  document.getElementById('rank-title').textContent = ti.t;
+  document.getElementById('rank-desc').textContent = ti.d;
+  document.getElementById('rank-fill').style.width = ti.progress+'%';
+  document.getElementById('rank-next').textContent = ti.next ? `Next: "${ti.next}" (${ti.nr})` : '🏆 Max rank!';
+  document.getElementById('rank-pct').textContent = ti.progress+'%';
+  // XP
+  const xpl = getXPLevel();
+  document.getElementById('xp-bar').style.width = xpl.pct+'%';
+  document.getElementById('xp-num').textContent = `${S.xp} XP total · Level ${xpl.lvl}`;
+  // stats
+  document.getElementById('ds-today').textContent = doneToday();
+  document.getElementById('ds-streak').textContent = maxStreak();
+  document.getElementById('ds-total').textContent = totalDone();
+  document.getElementById('ds-pct').textContent = pct+'%';
+  // quote
+  const qi = Math.floor(Date.now()/86400000) % QUOTES.length;
+  document.getElementById('quote-strip').textContent = '"'+QUOTES[qi]+'"';
+  // today date
+  const now = new Date();
+  document.getElementById('today-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const allToday = doneToday() + S.habits.filter(h=>h.cd&&h.cd.includes(TODAY)).length;
+  document.getElementById('day-goal-pct').textContent = `${allToday} items completed today`;
+  // water
+  renderWater();
+  // dash habits
+  const dh = document.getElementById('dash-habits');
+  dh.innerHTML = S.habits.length ? S.habits.slice(0,6).map(h=>{
+    const done = h.cd&&h.cd.includes(TODAY); const s = streak(h);
+    return `<div class="qh-row"><div><div class="qh-name">${h.name}</div><div class="qh-streak">${s} day streak</div></div><button class="qh-btn${done?' done':''}" onclick="toggleHabit('${h.id}')">${done?'✓ Done':'Check in'}</button></div>`;
+  }).join('') : '<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">No habits yet. <span style="color:var(--green);cursor:pointer" onclick="gotoPage(\'habits\')">Add habits →</span></div></div>';
+  // dash tasks
+  const pending = S.tasks.filter(t=>!t.done).slice(0,6);
+  document.getElementById('dash-tasks').innerHTML = pending.length ? pending.map(taskHTML).join('') : '<div class="empty"><div class="empty-icon">✓</div><div class="empty-text">All done for now!</div></div>';
+  // task list
+  const f = document.querySelector('#task-filters .pill.active')?.dataset.f||'all';
+  const search = document.getElementById('task-search')?.value.toLowerCase()||'';
+  let tasks = S.tasks.filter(t=>!search||t.title.toLowerCase().includes(search)||(t.notes&&t.notes.toLowerCase().includes(search)));
+  if (f==='pending') tasks=tasks.filter(t=>!t.done);
+  else if (f==='done') tasks=tasks.filter(t=>t.done);
+  else if (f==='overdue') tasks=tasks.filter(t=>isOverdue(t));
+  else if (['work','personal','health','study'].includes(f)) tasks=tasks.filter(t=>t.cat===f);
+  document.getElementById('task-list').innerHTML = tasks.length ? tasks.map(taskHTML).join('') : '<div class="empty"><div class="empty-icon">✓</div><div class="empty-text">No tasks here</div></div>';
+  // habits
+  document.getElementById('habit-list').innerHTML = S.habits.length ? S.habits.map(habCardHTML).join('') : '<div class="empty"><div class="empty-icon">◎</div><div class="empty-text">Add your first habit above!</div></div>';
+  // goals / journal
+  renderGoals(); renderJournal(); renderProgress(); renderReport(); renderAchievements();
+  renderFocusLog(); updateTimerDisplay(); updateDataSize();
+}
+
+// ══════════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════════
+window.toggleTask = id => {
+  const t = S.tasks.find(t=>t.id===id); if (!t) return;
+  t.done = !t.done; t.dd = t.done ? TODAY : null;
+  if (t.done) { addXP(10); toast('✓ Task done! +10 XP'); }
+  save(); render();
+};
+window.delTask = id => { if (confirm('Delete this task?')) { S.tasks=S.tasks.filter(t=>t.id!==id); save(); render(); } };
+window.toggleHabit = id => {
+  const h = S.habits.find(h=>h.id===id); if (!h) return;
+  if (!h.cd) h.cd=[];
+  if (h.cd.includes(TODAY)) h.cd=h.cd.filter(d=>d!==TODAY);
+  else { h.cd.push(TODAY); addXP(5); toast('◎ Habit checked! +5 XP'); }
+  save(); render();
+};
+window.delHabit = id => { if (confirm('Delete this habit?')) { S.habits=S.habits.filter(h=>h.id!==id); save(); render(); } };
+window.delGoal = id => { S.goals=S.goals.filter(g=>g.id!==id); save(); render(); };
+window.delJournal = id => { S.journal=S.journal.filter(j=>j.id!==id); save(); render(); };
+window.gotoPage = page => {
+  document.querySelectorAll('.nav-btn,.mob-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('[data-page="'+page+'"]').forEach(b=>b.classList.add('active'));
+};
+
+// ══════════════════════════════════════════════
+// ADD HANDLERS
+// ══════════════════════════════════════════════
+document.getElementById('btn-add-task').addEventListener('click',()=>{
+  const v = document.getElementById('t-input').value.trim(); if (!v) return;
+  S.tasks.unshift({ id:Date.now()+'', title:v, cat:document.getElementById('t-cat').value, pri:document.getElementById('t-pri').value, due:document.getElementById('t-due').value||null, notes:document.getElementById('t-notes').value.trim(), done:false, dd:null });
+  document.getElementById('t-input').value=''; document.getElementById('t-notes').value=''; document.getElementById('t-due').value='';
+  toast('Task added!'); save(); render();
+});
+document.getElementById('t-input').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('btn-add-task').click(); });
+
+document.getElementById('btn-add-habit').addEventListener('click',()=>{
+  const v = document.getElementById('h-input').value.trim(); if (!v) return;
+  S.habits.push({ id:Date.now()+'', name:v, cat:document.getElementById('h-cat').value, cd:[] });
+  document.getElementById('h-input').value='';
+  toast('Habit added!'); save(); render();
+});
+document.getElementById('h-input').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('btn-add-habit').click(); });
+
+document.getElementById('btn-add-goal').addEventListener('click',()=>{
+  const v = document.getElementById('g-input').value.trim(); if (!v) return;
+  const tgt = parseInt(document.getElementById('g-target').value); if (!tgt||tgt<1) { toast('Set a target number!'); return; }
+  S.goals.push({ id:Date.now()+'', title:v, type:document.getElementById('g-type').value, target:tgt, period:document.getElementById('g-period').value });
+  document.getElementById('g-input').value=''; document.getElementById('g-target').value='';
+  toast('Goal set! +5 XP'); addXP(5); save(); render();
+});
+
+document.getElementById('btn-add-journal').addEventListener('click',()=>{
+  const v = document.getElementById('j-text').value.trim(); if (!v) return;
+  const now = new Date();
+  S.journal.push({ id:Date.now()+'', text:v, mood:selMood, date:TODAY, time:now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) });
+  document.getElementById('j-text').value='';
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
+  selMood=''; toast('Journal saved! +5 XP'); addXP(5); save(); render();
+});
+document.querySelectorAll('.mood-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mood-btn').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel'); selMood = b.dataset.mood;
+}));
+
+// Focus timer
+document.getElementById('timer-start').addEventListener('click',startTimer);
+document.getElementById('timer-reset').addEventListener('click',()=>{
+  clearInterval(timerInterval); timerState.running=false;
+  document.getElementById('timer-start').textContent='▶ Start';
+  const dur = parseInt(document.querySelector('.timer-set-btn.active')?.dataset.dur||25);
+  timerState.secs=dur*60; timerState.total=dur*60; timerState.phase='focus';
+  updateTimerDisplay();
+});
+document.getElementById('timer-skip').addEventListener('click',()=>{
+  clearInterval(timerInterval); timerState.running=false;
+  document.getElementById('timer-start').textContent='▶ Start';
+  timerState.phase = timerState.phase==='focus'?'break':'focus';
+  const dur = timerState.phase==='focus'?(parseInt(document.querySelector('.timer-set-btn.active')?.dataset.dur||25)):timerState.breakDur;
+  timerState.secs=dur*60; timerState.total=dur*60; updateTimerDisplay();
+});
+document.querySelectorAll('.timer-set-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.timer-set-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const dur = parseInt(b.dataset.dur);
+  timerState.secs=dur*60; timerState.total=dur*60; timerState.phase='focus';
+  clearInterval(timerInterval); timerState.running=false;
+  document.getElementById('timer-start').textContent='▶ Start';
+  timerState.breakDur = dur===25?5:dur===50?10:20;
+  updateTimerDisplay();
+}));
+document.getElementById('btn-log-session').addEventListener('click',()=>{
+  const task = document.getElementById('focus-task').value.trim();
+  const dur = Math.round(timerState.total/60);
+  if (!S.focus.sessions) S.focus.sessions=[];
+  S.focus.sessions.push({ id:Date.now()+'', task:task||'Focus session', dur, time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}), date:TODAY });
+  toast('Session logged! +20 XP'); addXP(20); save(); render();
+});
+
+// Nav
+document.querySelectorAll('.nav-btn,.mob-btn').forEach(b=>b.addEventListener('click',()=>{
+  const page = b.dataset.page; if (!page) return;
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.mob-btn').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('[data-page="'+page+'"]').forEach(x=>x.classList.add('active'));
+  document.getElementById('page-'+page).classList.add('active');
+}));
+
+// Task filters
+document.querySelectorAll('#task-filters .pill').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#task-filters .pill').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); render();
+}));
+document.getElementById('task-search').addEventListener('input',render);
+
+// Theme
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme', isDark?'light':'dark');
+  document.getElementById('theme-btn').textContent = isDark?'☾ Toggle dark mode':'☀ Toggle light mode';
+  localStorage.setItem('disc-theme', isDark?'light':'dark');
+}
+document.getElementById('theme-btn').addEventListener('click',toggleTheme);
+document.getElementById('settings-theme-btn').addEventListener('click',toggleTheme);
+
+// Export
+document.getElementById('btn-export').addEventListener('click',()=>{
+  const blob = new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`discipline-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); toast('Data exported!');
+});
+
+// Import
+document.getElementById('import-file').addEventListener('change',e=>{
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (confirm('This will replace all your current data. Continue?')) {
+        S = data; save(); render(); toast('Data imported!');
+      }
+    } catch(e) { toast('Invalid backup file'); }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
+// Clear
+document.getElementById('btn-clear').addEventListener('click',()=>{
+  if (confirm('Delete ALL data permanently? This cannot be undone.')) {
+    S={tasks:[],habits:[],goals:[],journal:[],focus:{sessions:[],todayCount:0,todayMin:0,lastDate:''},water:{today:0,lastDate:''},xp:0};
+    save(); render(); toast('All data cleared');
+  }
+});
+
+// Init theme
+const savedTheme = localStorage.getItem('disc-theme')||'dark';
+document.documentElement.setAttribute('data-theme',savedTheme);
+document.getElementById('theme-btn').textContent = savedTheme==='dark'?'☀ Toggle light mode':'☾ Toggle dark mode';
+
+load();
+</script>
+</body>
+</html>
